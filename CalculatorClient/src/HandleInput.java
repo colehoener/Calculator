@@ -7,73 +7,111 @@ public class HandleInput {
     Vector calculation = new Vector();
     int totalOperands = 0;
     JTextField displayText = null;
-    Connector connect = new Connector();
-    Socket socket = connect.CreateConnection();
-    CallServer serverCall = new CallServer(socket);
+    JButton Clear;
+    JButton Undo;
+    JLabel Invalid;
+
+    CallServer serverCall = null;
     Addition addi = new Addition();
     Subtraction sub = new Subtraction();
     Multiplication mult = new Multiplication();
     Divison div = new Divison();
     Boolean didCalculation = false;
     String longCalc = "";
-    JPopupMenu pm;
+    Boolean isInvaild = false;
 
-
-    public HandleInput(JTextField displayText ) throws IOException {
+    public HandleInput(JTextField displayText, JButton Clear, JButton Undo, JLabel Invalid, Socket socket ) throws IOException {
         this.displayText = displayText;
-
+        this.Clear = Clear;
+        this.Undo = Undo;
+        this.Invalid = Invalid;
+        this.serverCall = new CallServer(socket);
     }
 
     public void Handle(String input) throws IOException {
-        //serverCall.Call();
-
-        if(didCalculation){
-            calculation.clear();
-            displayText.setText("");
-            didCalculation = false;
-            totalOperands = 0;
+        if(input == "+" || input == "-" || input == "*" || input == "/"){
+            String lastEl = (String) calculation.elementAt(calculation.size() - 1);
+            if(lastEl == "+" || lastEl == "-" || lastEl == "*" || lastEl == "/"){
+                isInvaild = true;
+                Clear.setVisible(true);
+                Undo.setVisible(true);
+                Invalid.setVisible(true);
+            }
         }
+        if(isInvaild){
+            if(input == "Clear"){
+                calculation.clear();
+                displayText.setText("");
+                longCalc = "";
+                isInvaild = false;
+                Clear.setVisible(false);
+                Undo.setVisible(false);
+                Invalid.setVisible(false);
+            }
+            else if(input == "Undo"){
 
-        //Check if equal sign
-        if(input == "="){
-            longCalc = longCalc.concat("=");
-            Calculate();
-            didCalculation = true;
-            totalOperands = 0;
-
-            serverCall.Call(longCalc);
-            longCalc = "";
+                displayText.setText(displayText.getText());
+                longCalc = "";
+                isInvaild = false;
+                Clear.setVisible(false);
+                Undo.setVisible(false);
+                Invalid.setVisible(false);
+            }
+        }
+        else if(input == "Clear"){
 
         }
-        else if(input == "C"){
-            calculation.clear();
-            displayText.setText("");
-            longCalc = "";
+        else if(input == "Undo"){
+
         }
-        else if(input == "+" || input == "-" || input == "*" || input == "/"){
-            if(calculation.size() > 0){
-                totalOperands++;
+        else{
+            if (didCalculation) {
+                calculation.clear();
+                displayText.setText("");
+                didCalculation = false;
+                totalOperands = 0;
+            }
+
+            //Check if equal sign
+            if (input == "=") {
+                longCalc = longCalc.concat("=");
+                Calculate();
+                didCalculation = true;
+                totalOperands = 0;
+
+                serverCall.Call(longCalc);
+                longCalc = "";
+
+            } else if (input == "C") {
+                calculation.clear();
+                displayText.setText("");
+                longCalc = "";
+            } else if (input == "+" || input == "-" || input == "*" || input == "/") {
+                if (calculation.size() > 0) {
+                    totalOperands++;
+                    calculation.add(input);
+                    displayText.setText(displayText.getText() + input);
+                    longCalc = longCalc.concat(input);
+                } else {
+                    Clear.setVisible(true);
+                    Undo.setVisible(true);
+                    Invalid.setVisible(true);
+                    isInvaild = true;
+                }
+
+            } else {
                 calculation.add(input);
                 displayText.setText(displayText.getText() + input);
                 longCalc = longCalc.concat(input);
             }
-            else{
 
+            if (totalOperands > 1) {
+                calculation.removeElementAt(calculation.size() - 1);
+                Calculate();
+                calculation.add(input);
+                displayText.setText(displayText.getText() + input);
+                totalOperands = 1;
             }
-
-        }
-        else{
-            calculation.add(input);
-            displayText.setText(displayText.getText() + input);
-            longCalc = longCalc.concat(input);
-        }
-
-        if(totalOperands > 1){
-            calculation.removeElementAt(calculation.size() - 1);
-            Calculate();
-            calculation.add(input);
-            displayText.setText(displayText.getText() + input);
-            totalOperands = 1;
         }
 
 

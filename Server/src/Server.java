@@ -11,7 +11,7 @@ public class Server {
         Logger log = new Logger();
         Socket client = serverSocket.accept();
 
-        while(client.isConnected()) {
+        while(!client.isClosed()) {
             BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
             String calculation;
 

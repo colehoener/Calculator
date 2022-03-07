@@ -7,10 +7,24 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 
 public class CalculatorClient {
+    static Connector connect = new Connector();
+    static Socket socket;
+
+    static {
+        try {
+            socket = connect.CreateConnection();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public CalculatorClient() throws IOException {
 
+        Invaild.setVisible(false);
+        Clear.setVisible(false);
+        Undo.setVisible(false);
+        HandleInput handler = new HandleInput(textField1, Clear, Undo, Invaild, socket);
 
-        HandleInput handler = new HandleInput(textField1);
         one.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -161,20 +175,57 @@ public class CalculatorClient {
                 }
             }
         });
+        Undo.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    handler.Handle("Undo");
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                }
+            }
+        });
+        Clear.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    handler.Handle("Clear");
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                }
+            }
+        });
+        zero.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    handler.Handle("0");
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                }
+            }
+        });
     }
 
     public static void main(String[] args) throws IOException {
-        JFrame frame = new JFrame("CalculatorClient");
+
         frame.setContentPane(new CalculatorClient().panel1);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.setVisible(true);
 
-
-
+        frame.addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                try {
+                    socket.close();
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                }
+            }
+        });
 
     }
-
+    static JFrame frame = new JFrame("CalculatorClient");
     private JButton one;
     private JButton four;
     private JButton seven;
@@ -193,6 +244,9 @@ public class CalculatorClient {
     private JButton divide;
     private JPanel panel1;
     private JTextField textField1;
+    private JButton Clear;
+    private JButton Undo;
+    private JLabel Invaild;
 
     private void createUIComponents() {
         // TODO: place custom component creation code here
